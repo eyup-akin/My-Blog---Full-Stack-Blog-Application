@@ -32,7 +32,7 @@ async function addComment(req, res, next) {
         );
 
         if (postResult.rowCount === 0) {
-            return res.status(404).send("Post bulunamadı");
+            return next(new AppError("Post bulunamadı", 404));
         }
 
         await pool.query(
@@ -53,7 +53,7 @@ async function addComment(req, res, next) {
     }
 }
 
-async function getCommentsByPostId(req, res) {
+async function getCommentsByPostId(req, res, next) {
 
     try {
 
@@ -66,7 +66,7 @@ async function getCommentsByPostId(req, res) {
         );
 
         if (postCheck.rowCount === 0) {
-            return res.status(404).send("Post bulunamadı");
+            return next(new AppError("Post bulunamadı", 404));
         }
 
         //postId'ye ait yorumları getiriyoruz.
@@ -90,13 +90,12 @@ async function getCommentsByPostId(req, res) {
 
 
     } catch (err){
-        console.error(err);
-        res.status(500).send("Yorumlar getirilemedi");
+        next(err);
     }
 
 }
 
-async function deleteComment(req, res) {
+async function deleteComment(req, res, next) {
     
     try{
 
@@ -109,7 +108,7 @@ async function deleteComment(req, res) {
         );
 
         if (commentCheck.rowCount === 0){
-            return res.status(404).send("Yorum bulunamadı");
+            return next(new AppError("Yorum bulunamadı", 404));
         }
 
         const commentAuthorId = commentCheck.rows[0].author_id;
@@ -119,7 +118,7 @@ async function deleteComment(req, res) {
             req.user.role !== "admin" &&
             req.user.id !== commentAuthorId
         ){
-            return res.status(403).send("Bu yorumu silme yetkin yok");
+            return next(new AppError("Bu yorumu silme yetkin yok", 403));
         }
 
         //sil
@@ -133,8 +132,7 @@ async function deleteComment(req, res) {
 
 
     }catch(err){
-        console.error(err);
-        res.status(500).send("Yorum silinemedi");
+        next(err);
     }
 
 }

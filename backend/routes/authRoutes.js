@@ -1,8 +1,15 @@
 const express = require("express");
 const router = express.Router();
 
-const { register, login } = require("../controllers/authController");
+const { register, login, createAdmin } = require("../controllers/authController");
 //authController'daki register ve login fonksiyonlarını import ediyoruz, bu fonksiyonlar kullanıcı kayıt ve giriş işlemlerini gerçekleştirecek.
+
+//admin kaydı için
+const { authenticateToken, adminOnly } = require("../middleware/auth");
+
+
+//admin kaydı için router
+router.post("/create-admin", authenticateToken, adminOnly, createAdmin);
 
 router.post("/register", register);
 //POST /auth/register endpoint'i, yeni kullanıcı kaydı için kullanılır. Bu endpoint'e gelen isteklerde register fonksiyonu çalıştırılır.

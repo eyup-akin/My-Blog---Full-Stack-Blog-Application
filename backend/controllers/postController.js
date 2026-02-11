@@ -74,10 +74,17 @@ async function getAllPosts(req, res, next) {
         //sayfalı postları al
         const postsResult = await pool.query(
             `
-            SELECT *
+            SELECT 
+                posts.id,
+                posts.title,
+                posts.content,
+                posts.created_at,
+                users.username
             FROM posts
-            ORDER BY id DESC
+            JOIN users ON posts.author_id = users.id
+            ORDER BY posts.id DESC
             LIMIT $1 OFFSET $2
+
             `,
             [limit, offset]
         );

@@ -18,10 +18,10 @@ async function register(req, res, next) {
 
     try {
 
-        const { username, email, password, role } = req.body;
+        const { username, email, password } = req.body;
 
         if (!username || !email || !password) {
-            return next(new AppError("Tüm alanlar zorunludur"), 400);
+            return next(new AppError("Tüm alanlar zorunludur", 400));
         }
 
         const existingUser = await pool.query(
@@ -30,16 +30,18 @@ async function register(req, res, next) {
         );
 
         if (existingUser.rowCount > 0) {
-            return res.status(400).send("Bu email zaten kullanılıyor");
+            return next(new AppError("Bu email zaten kullanılıyor", 400));
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const userRole = role === "admin" ? "admin" : "user";
+        const userRole = "user";
+
 
         await pool.query(
             "INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)",
             [username, email, hashedPassword, userRole]
         );
+
 
         //bunu artık kullanmıor-yrmuz
         //res.send("Kullanıcı başarıyla kaydedildi");
@@ -67,7 +69,7 @@ async function login(req, res, next) {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return next(new AppError("Email ve parola zorunludur"), 400);
+            return next(new AppError("Email ve parola zorunludur", 400));
         }
 
         const result = await pool.query(
@@ -76,7 +78,7 @@ async function login(req, res, next) {
         );
 
         if (result.rowCount === 0) {
-            return res.status(400).send("Bu email ile kayıtlı kullanıcı bulunamadı");
+            return next(new AppError("Bu email ile kayıtlı kullanıcı bulunamadı", 400));
         }
 
         const user = result.rows[0];
@@ -84,7 +86,7 @@ async function login(req, res, next) {
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
-            return res.status(400).send("Parola yanlış");
+            return next(new AppError("Parola yanlış", 400));
         }
 
         const token = jwt.sign(
@@ -110,7 +112,44 @@ async function login(req, res, next) {
 
 }
 
+//admin oluşturmak için ayrı bir endpoint
+async function createAdmin(req , res, next){
+
+    try {
+
+        const { username, email, password } = req.body;
+
+        if(!username || !email || !password) {
+            return next(new AppError("Tüm alanlar zorunludur", 400));
+        }
+
+        const existingUser = await pool.query(
+            "SELECT * FROM users WHERE email = $1",
+             [email]
+        );
+
+        if(existingUser.rowCount > 0) {
+            return next(new AppError("Bu email zaten kullanılıyor", 400));
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        await pool.query(
+            "INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)",
+            [username, email, hashedPassword, "admin"]
+        );
+
+        success(res, { message: "Admin oluşturuldu" }, 201);
+
+
+    } catch (err){
+        next(err);
+    }
+
+}
+
 module.exports = {
     register,
-    login
+    login,
+    createAdmin
 };

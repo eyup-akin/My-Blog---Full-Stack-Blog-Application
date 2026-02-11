@@ -1,6 +1,9 @@
 const jwt = require('jsonwebtoken');
 //kütüphaneyi import ediyoruz, JWT işlemleri için kullanacağız.
 
+const AppError = require("../utils/AppError");
+
+
 /*
 
  Bu middleware, gelen isteklerde Authorization 
@@ -19,20 +22,20 @@ function authenticateToken(req, res, next) {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
-        return res.status(401).send("Token yok");
+        return next(new AppError("Token yok", 401));
     }
 
     const token = authHeader.split(' ')[1];
 
     if (!token) {
-        return res.status(401).send("Token yok");
+        return next(new AppError("Token yok", 401));
     }
 
     //token'ı doğruluyoruz, eğer geçerliyse kullanıcı bilgilerini req.user'a atıyoruz.
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
 
         if (err) {
-            return res.status(403).send("Token geçersiz");
+            return next(new AppError("Token geçersiz", 403));
         }
 
         req.user = user;
@@ -47,7 +50,7 @@ function authenticateToken(req, res, next) {
 //adminOnly middleware'i, sadece admin rolüne sahip kullanıcıların erişebileceği endpoint'ler için kullanılır.
 function adminOnly(req, res, next) {
     if (req.user.role !== "admin") {
-        return res.status(403).send("Yönetici yetkisi gerekli");
+        return next(new AppError("Yönetici yetkisi gerekli", 403));
     }
 
     next();
