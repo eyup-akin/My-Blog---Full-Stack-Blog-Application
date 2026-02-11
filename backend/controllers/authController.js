@@ -1,0 +1,116 @@
+const bcrypt = require("bcrypt");
+//kütüphaneyi import ediyoruz, parolaları hash'lemek ve doğrulamak için kullanacağız.
+
+const jwt = require("jsonwebtoken");
+//kütüphaneyi import ediyoruz, JWT token'ları oluşturmak ve doğrulamak için kullanacağız.
+
+const pool = require("../db");
+//veritabanı bağlantısı için pool'u import ediyoruz.
+
+//error handler için 
+const AppError = require("../utils/AppError");
+
+//errorları response ederken birlikteilik için
+const { success } = require("../utils/response");
+
+//register fonksiyonu, yeni kullanıcı kaydı için kullanılır. Bu fonksiyon, authRoutes.js'deki /register endpoint'inde çağrılacak.
+async function register(req, res, next) {
+
+    try {
+
+        const { username, email, password, role } = req.body;
+
+        if (!username || !email || !password) {
+            return next(new AppError("Tüm alanlar zorunludur"), 400);
+        }
+
+        const existingUser = await pool.query(
+            "SELECT * FROM users WHERE email = $1",
+            [email]
+        );
+
+        if (existingUser.rowCount > 0) {
+            return res.status(400).send("Bu email zaten kullanılıyor");
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const userRole = role === "admin" ? "admin" : "user";
+
+        await pool.query(
+            "INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)",
+            [username, email, hashedPassword, userRole]
+        );
+
+        //bunu artık kullanmıor-yrmuz
+        //res.send("Kullanıcı başarıyla kaydedildi");
+
+        success(res, { message: "Kullanıcı oluşturuldu"}, 201);
+
+
+    }catch (err) {
+        /*
+        console.error(err);
+        res.status(500).send("Sunucu hatası");
+        */
+       next(err);
+    }
+
+}
+
+
+//ekleme yaptık global handler için next paramaetresi
+//login fonksiyonu, kullanıcıların giriş yapması için kullanılır. Bu fonksiyon, authRoutes.js'deki /login endpoint'inde çağrılacak.
+async function login(req, res, next) {
+
+    try {
+
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return next(new AppError("Email ve parola zorunludur"), 400);
+        }
+
+        const result = await pool.query(
+            "SELECT * FROM users WHERE email = $1",
+            [email]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(400).send("Bu email ile kayıtlı kullanıcı bulunamadı");
+        }
+
+        const user = result.rows[0];
+
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(400).send("Parola yanlış");
+        }
+
+        const token = jwt.sign(
+            { id: user.id, username: user.username, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" }
+        );
+
+        
+        //bu da gitti biladerim
+        //res.json({ token });
+
+        success(res, { token });
+
+
+    }catch (err){
+        /*
+        console.error(err);
+        res.status(500).send("Login hatası");
+        */
+       next(err);
+    }
+
+}
+
+module.exports = {
+    register,
+    login
+};
