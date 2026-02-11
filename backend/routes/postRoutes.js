@@ -5,6 +5,9 @@ const router = express.Router();
 
 const { authenticateToken } = require("../middleware/auth");
 
+//validasyon için
+const { postValidation } = require("../validations/postValidation");
+
 
 const {
     createPost,
@@ -16,9 +19,9 @@ const {
 
 const { getCommentsByPostId } = require("../controllers/commentController");
 
-router.post("/", authenticateToken, createPost);
+router.post("/", authenticateToken,postValidation, createPost);
 router.get("/", getAllPosts);
-router.put("/:id", authenticateToken, updatePost);
+router.put("/:id", authenticateToken,postValidation, updatePost);
 router.delete("/:id", authenticateToken, deletePost);
 
 

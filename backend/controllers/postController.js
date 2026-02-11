@@ -14,12 +14,12 @@ async function createPost(req, res, next) {
     try {
 
         const { title, content } = req.body;
-
+/*
         if (!title || !content) {
             //return res.status(400).send("Başlık ve içerik zorunludur");
             return next(new AppError("Başlık ve içerik zorunludur"))
         }
-
+*/
         await pool.query(
             "INSERT INTO posts (title, content, author_id) VALUES ($1, $2, $3)",
             [title, content, req.user.id]
@@ -116,11 +116,11 @@ async function updatePost(req, res, next){
 
         const postId = req.params.id;
         const { title, content } = req.body;
-
+/*
         if(!title || !content){
             return next(new AppError("Başlık ve içerik zorunludur", 400));
         }
-
+*/
         const postCheck = await pool.query(
             "SELECT author_id FROM posts WHERE id = $1",
             [postId]

@@ -19,11 +19,11 @@ async function register(req, res, next) {
     try {
 
         const { username, email, password } = req.body;
-
+/*
         if (!username || !email || !password) {
             return next(new AppError("Tüm alanlar zorunludur", 400));
         }
-
+*/
         const existingUser = await pool.query(
             "SELECT * FROM users WHERE email = $1",
             [email]
@@ -67,11 +67,11 @@ async function login(req, res, next) {
     try {
 
         const { email, password } = req.body;
-
+/*
         if (!email || !password) {
             return next(new AppError("Email ve parola zorunludur", 400));
         }
-
+*/
         const result = await pool.query(
             "SELECT * FROM users WHERE email = $1",
             [email]
@@ -118,11 +118,11 @@ async function createAdmin(req , res, next){
     try {
 
         const { username, email, password } = req.body;
-
+/*
         if(!username || !email || !password) {
             return next(new AppError("Tüm alanlar zorunludur", 400));
         }
-
+*/
         const existingUser = await pool.query(
             "SELECT * FROM users WHERE email = $1",
              [email]

@@ -18,14 +18,14 @@ async function addComment(req, res, next) {
         if (!post_id || !content) {
             return res.status(400).send("Post ID ve içerik zorunludur");
         }
-        */
+        
 
         //error handler kullanımı 
         if (!post_id || !content) {
             return next(new AppError("Post ID ve içerik zorunludur", 400));
         }
 
-
+*/
         const postResult = await pool.query(
             "SELECT id FROM posts WHERE id = $1",
             [post_id]

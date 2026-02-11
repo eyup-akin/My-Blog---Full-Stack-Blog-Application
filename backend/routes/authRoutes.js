@@ -7,13 +7,17 @@ const { register, login, createAdmin } = require("../controllers/authController"
 //admin kaydı için
 const { authenticateToken, adminOnly } = require("../middleware/auth");
 
+//validasyon için
+const { registerValidation, loginValidation } = require("../validations/authValidation");
 
 //admin kaydı için router
 router.post("/create-admin", authenticateToken, adminOnly, createAdmin);
 
-router.post("/register", register);
+//router.post("/register", register);
+//validasyonlu hali
+router.post("/register",registerValidation, register);
 //POST /auth/register endpoint'i, yeni kullanıcı kaydı için kullanılır. Bu endpoint'e gelen isteklerde register fonksiyonu çalıştırılır.
-router.post("/login", login);
+router.post("/login",loginValidation, login);
 //POST /auth/login endpoint'i, kullanıcıların giriş yapması için kullanılır. Bu endpoint'e gelen isteklerde login fonksiyonu çalıştırılır.
 
 module.exports = router;

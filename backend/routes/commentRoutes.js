@@ -8,8 +8,13 @@ const {
 } = require("../controllers/commentController");
 
 
+//validasyon için
+const { commentValidation } = require("../validations/commentValidation");
+
+
+
 //yorum ekleme endpoint'i, bu endpoint'e gelen isteklerde önce authenticateToken middleware'i çalıştırılır, eğer token geçerliyse addComment fonksiyonu çalıştırılır.
-router.post("/", authenticateToken, addComment);
+router.post("/", authenticateToken,commentValidation, addComment);
 router.delete("/:id", authenticateToken, deleteComment);
 
 module.exports = router;
