@@ -1,3 +1,4 @@
+const { application } = require('express');
 const pool = require('../db');//veritabanı bağlantısı için pool'u import ediyoruz.
 
 const AppError = require("../utils/AppError");
@@ -5,6 +6,7 @@ const AppError = require("../utils/AppError");
 
 //tek tip response için 
 const { success } = require("../utils/response");
+const { post } = require('../routes/authRoutes');
 
 
 async function createPost(req, res, next) {
@@ -107,7 +109,89 @@ async function getAllPosts(req, res, next) {
 
 }
 
+//post güncelleme için endpointli fonksiyon
+async function updatePost(req, res, next){
+
+    try {
+
+        const postId = req.params.id;
+        const { title, content } = req.body;
+
+        if(!title || !content){
+            return next(new AppError("Başlık ve içerik zorunludur", 400));
+        }
+
+        const postCheck = await pool.query(
+            "SELECT author_id FROM posts WHERE id = $1",
+            [postId]
+        );
+
+        if (postCheck.rowCount === 0) {
+            return next(new AppError("Post bulunamadı", 404));
+        }
+
+        const postAuthorId = postCheck.rows[0].author_id;
+
+        if (req.user.role !== "admin" &&
+            req.user.id !== postAuthorId
+        ) {
+            return next(new AppError("Bu postu güncelleme yetkin yok", 403));
+        }
+
+        await pool.query(
+            "UPDATE posts SET title = $1, content = $2 WHERE id = $3",
+            [title, content, postId]
+        );
+
+        success(res, { message: "Post güncellendi" });
+
+
+    } catch (err){
+        next(err);
+    }
+
+}
+
+
+//post silme
+async function deletePost(req, res, next) {
+    try {
+        const postId = req.params.id;
+
+        const postCheck = await pool.query(
+            "SELECT author_id FROM posts WHERE id = $1",
+            [postId]
+        );
+
+        if (postCheck.rowCount === 0) {
+            return next(new AppError("Post bulunamadı", 404));
+        }
+
+        const postAuthorId = postCheck.rows[0].author_id;
+
+        if (
+            req.user.role !== "admin" &&
+            req.user.id !== postAuthorId
+        ) {
+            return next(new AppError("Bu postu silme yetkin yok", 403));
+        }
+
+        await pool.query(
+            "DELETE FROM posts WHERE id = $1",
+            [postId]
+        );
+
+        success(res, { message: "Post silindi" });
+
+    } catch (err) {
+        next(err);
+    }
+}
+
+
 module.exports = {
     createPost,
-    getAllPosts
+    getAllPosts,
+    updatePost,
+    deletePost
 };
