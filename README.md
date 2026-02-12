@@ -1,8 +1,8 @@
 # My Blog – Backend API
 
-Bu proje, Node.js ve Express kullanılarak geliştirilmiş, production yaklaşımı benimsenmiş bir blog backend uygulamasıdır.
+Node.js ve Express kullanılarak geliştirilmiş, güvenlik ve mimari prensipleri gözetilerek tasarlanmış bir blog backend uygulamasıdır.
 
-Amaç yalnızca CRUD işlemleri yapmak değil; güvenli, modüler ve sürdürülebilir bir backend mimarisi kurmaktır.
+Bu proje yalnızca CRUD işlemleri yapmak amacıyla değil; gerçek bir production backend yaklaşımını uygulamak amacıyla geliştirilmiştir.
 
 ---
 
@@ -17,15 +17,22 @@ Amaç yalnızca CRUD işlemleri yapmak değil; güvenli, modüler ve sürdürül
 - Pagination Support
 - SQL JOIN ile ilişkili veri çekme
 - Request Validation Layer (express-validator)
+- Security Middleware (Helmet, CORS, Rate Limiting)
+- Body Size Limitation (DoS koruması)
 - Modüler klasör mimarisi
 
 ---
 
 ## 🔐 Authentication & Authorization
 
-- Kullanıcı kayıt olabilir (register)
-- Login sonrası JWT token üretilir
-- Protected endpoint’lerde `Authorization: Bearer TOKEN` kullanılır
+- Kullanıcı kayıt olabilir (`/auth/register`)
+- Login sonrası JWT token üretilir (`/auth/login`)
+- Protected endpoint’lerde:
+
+Authorization: Bearer TOKEN
+
+
+- Register sırasında role dışarıdan atanamaz (güvenlik)
 - Sadece admin kullanıcılar yeni admin oluşturabilir
 - Admin kullanıcılar tüm post ve yorumları yönetebilir
 
@@ -34,18 +41,22 @@ Amaç yalnızca CRUD işlemleri yapmak değil; güvenli, modüler ve sürdürül
 ## 📝 Post Sistemi
 
 - Giriş yapmış kullanıcı post oluşturabilir
+- Post güncelleyebilir
+- Post silebilir
+- Admin tüm postları yönetebilir
 - Postlar pagination ile listelenir
 
 Örnek:
+
 GET /posts?page=1&limit=10
 
 
 Response içinde:
+
 - post listesi
 - toplam post sayısı
 - toplam sayfa sayısı
-
-Postlar kullanıcı bilgisi ile birlikte JOIN kullanılarak döner.
+- author username (JOIN ile)
 
 ---
 
@@ -59,14 +70,18 @@ Postlar kullanıcı bilgisi ile birlikte JOIN kullanılarak döner.
 
 ---
 
-## 🛡 Güvenlik Yapısı
+## 🛡 Güvenlik Katmanı
 
 - Şifreler bcrypt ile hashlenir
 - JWT ile kimlik doğrulama
-- Role güvenliği (register'da role dışarıdan atanamaz)
+- Role güvenliği (register'da role atanamaz)
 - Ownership kontrolü
 - Global error handler
 - Express-validator ile request validation
+- Helmet ile güvenlik header'ları
+- Rate limiting ile brute-force koruması
+- CORS yapılandırması
+- 10kb body size limiti (DoS koruması)
 
 ---
 
@@ -92,24 +107,31 @@ Katmanlı ve ayrık sorumluluk prensibi uygulanmıştır.
 - bcrypt
 - dotenv
 - express-validator
+- helmet
+- express-rate-limit
+- cors
 
 ---
 
 ## ⚙️ Kurulum
 
 ### 1. Repoyu klonla
+
 git clone REPO_LINK
 
 
 ### 2. Proje klasörüne gir
+
 cd backend
 
 
 ### 3. Bağımlılıkları yükle
+
 npm install
 
 
-### 4. .env dosyası oluştur
+### 4. `.env` dosyası oluştur
+
 DB_USER=
 DB_HOST=
 DB_NAME=
@@ -119,30 +141,19 @@ JWT_SECRET=
 
 
 ### 5. Server başlat
+
 node server.js
 
 
 ---
 
-## 🎯 Bu Projede Kazanılan Yetkinlikler
-
-- Middleware mimarisi
-- Merkezi error handling
-- Role bazlı yetkilendirme
-- Ownership kontrolü
-- SQL JOIN kullanımı
-- Pagination hesaplama
-- Validation katmanı kurma
-- Modüler backend mimarisi
-
----
-
-## 📌 Gelecek Geliştirmeler
+## 📌 Yol Haritası
 
 - Refresh token sistemi
-- Rate limiting
-- Helmet güvenlik başlıkları
-- API dokümantasyonu (Swagger)
+- Logout endpoint
+- Token rotation
+- Swagger API dokümantasyonu
 - Test yazımı (Jest)
+- Docker desteği
 
 ---
