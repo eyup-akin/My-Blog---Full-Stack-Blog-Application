@@ -191,6 +191,29 @@ async function logout(req, res, next){
 
 }
 
+async function getMe(req, res, next){
+
+    try {
+
+        const userId = req.user.id;
+
+        const result = await pool.query(
+            "SELECT id, username, email, role, created_at FROM users WHERE id = $1",
+            [userId]
+        );
+
+        if(result.rowCount === 0){
+            return next(new AppError("Kullanıcı bulunamadı", 404));
+        }
+
+        success(res, result.rows[0]);
+
+    } catch (err) {
+        next(err);
+    }
+
+
+}
 
 
 //admin oluşturmak için ayrı bir endpoint
@@ -234,5 +257,6 @@ module.exports = {
     login,
     createAdmin,
     refresh,
-    logout
+    logout,
+    getMe
 };
