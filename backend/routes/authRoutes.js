@@ -10,6 +10,14 @@ const { authenticateToken, adminOnly } = require("../middleware/auth");
 //validasyon için
 const { registerValidation, loginValidation } = require("../validations/authValidation");
 
+
+//refresh token ve logout için
+const { refresh, logout } = require("../controllers/authController");
+
+router.post("/refresh", refresh);
+router.post("/logout", logout);
+
+
 //admin kaydı için router
 router.post("/create-admin", authenticateToken, adminOnly, createAdmin);
 

@@ -89,29 +89,32 @@ async function login(req, res, next) {
             return next(new AppError("Parola yanlış", 400));
         }
 
-        const token = jwt.sign(
+       const accessToken = jwt.sign(
             { id: user.id, username: user.username, role: user.role },
             process.env.JWT_SECRET,
-            { expiresIn: "1h" }
+            { expiresIn: "15m" } // kısa süreli
         );
 
-        
-        //bu da gitti biladerim
-        //res.json({ token });
+        const refreshToken = jwt.sign(
+            { id: user.id },
+            process.env.JWT_REFRESH_SECRET,
+            { expires: "7d" } // uzun süreli
+        );
 
-        //success(res, { token });
+        await pool.query(
+            "INSERT INTO refresh_tokens (user_id, token) VALUES ($1, $2)",
+            [user.id, refreshToken]
+        );
 
         success(res, {
-            token,
+            accessToken,
+            refreshToken,
             user: {
                 id: user.id,
                 username: user.username,
                 role: user.role
             }
         });
-
-
-
 
 
     }catch (err){
@@ -123,6 +126,72 @@ async function login(req, res, next) {
     }
 
 }
+
+async function refresh(req, res, next) {
+
+    try {
+
+        const { refreshToken } = req.body;
+
+        if (!refreshToken) {
+            return next(new AppError("Refresh token gerekli", 401));
+        }
+
+        //DB'de var mı?
+        const tokenCheck = await pool.query(
+            "SELECT * FROM refresh_tokens WHERE token = $1",
+            [refreshToken]
+        );
+
+        if(tokenCheck.rowCount === o){
+            return next(new AppError("Geçersiz refresh token", 403));
+        }
+
+        //token doğrula
+        jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, user) => {
+            if(err){
+                return next(new AppError("Refresh token geçersiz", 403));
+            }
+
+            const newAccessToken = jwt.sign(
+                { id: user.id },
+                process.env.JWT_SECRET,
+                { expiresIn: "15m" }
+            );
+
+            success(res, { accessToken: newAccessToken });
+
+        });
+
+
+    } catch (err) {
+        next(err);
+    }
+
+}
+
+
+//logout endpointi
+async function logout(req, res, next){
+
+    try {
+
+        const { refreshToken } = req.body;
+
+        await pool.query(
+            "DELETE FROM refresh_tokens WHERE token = $1",
+            [refreshToken]
+        );
+
+        success(res, { message: "Çıkış yapıldı" });
+
+    } catch (err){
+        next(err);
+    }
+
+}
+
+
 
 //admin oluşturmak için ayrı bir endpoint
 async function createAdmin(req , res, next){
