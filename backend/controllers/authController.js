@@ -99,7 +99,19 @@ async function login(req, res, next) {
         //bu da gitti biladerim
         //res.json({ token });
 
-        success(res, { token });
+        //success(res, { token });
+
+        success(res, {
+            token,
+            user: {
+                id: user.id,
+                username: user.username,
+                role: user.role
+            }
+        });
+
+
+
 
 
     }catch (err){

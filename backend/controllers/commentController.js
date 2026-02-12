@@ -1,5 +1,4 @@
 const pool = require('../db');//veritabanı bağlantısı için pool'u import ediyoruz.
-const { get } = require('../routes/authRoutes');
 
 //bunu sonradan ekledik 
 //error handlerer 

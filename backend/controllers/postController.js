@@ -1,4 +1,3 @@
-const { application } = require('express');
 const pool = require('../db');//veritabanı bağlantısı için pool'u import ediyoruz.
 
 const AppError = require("../utils/AppError");
@@ -6,7 +5,6 @@ const AppError = require("../utils/AppError");
 
 //tek tip response için 
 const { success } = require("../utils/response");
-const { post } = require('../routes/authRoutes');
 
 
 async function createPost(req, res, next) {

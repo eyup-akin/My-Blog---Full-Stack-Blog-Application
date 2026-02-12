@@ -1,6 +1,6 @@
 const { body, validationResult } = require("express-validator");
 const AppError = require("../utils/AppError");
-const { application } = require("express");
+
 
 
 const commentValidation = [
