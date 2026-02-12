@@ -232,5 +232,7 @@ async function createAdmin(req , res, next){
 module.exports = {
     register,
     login,
-    createAdmin
+    createAdmin,
+    refresh,
+    logout
 };
