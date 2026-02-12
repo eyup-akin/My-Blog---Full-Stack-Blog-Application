@@ -1,41 +1,63 @@
 require("dotenv").config();
-//dotenv kütüphanesini import ediyoruz, .env dosyasındaki çevresel değişkenleri kullanmak için.
+
 const express = require("express");
-//express kütüphanesini import ediyoruz, web sunucusu oluşturmak için kullanacağız.
 const app = express();
 
-app.use(express.json());
-//gelen isteklerdeki JSON verilerini otomatik olarak ayrıştırmak için express.json() middleware'ini kullanıyoruz.
+// Security middleware
+const helmet = require("helmet");
+const cors = require("cors");
+const rateLimit = require("express-rate-limit");
 
+// Routes
 const authRoutes = require("./routes/authRoutes");
-//authRoutes'u import ediyoruz, bu dosyada kullanıcı kayıt ve giriş işlemleriyle ilgili endpoint'ler tanımlanacak.
 const postRoutes = require("./routes/postRoutes");
-//postRoutes'u import ediyoruz, bu dosyada blog postlarıyla ilgili endpoint'ler tanımlanacak.
-
-
 const commentRoutes = require("./routes/commentRoutes");
-//commentRoutes'u import ediyoruz, bu dosyada yorumlarla ilgili endpoint'ler tanımlanacak.
 
+// Global error handler
 const errorHandler = require("./middleware/errorHandler");
 
+/* ------------------- SECURITY MIDDLEWARE ------------------- */
+
+// 1. Set secure HTTP headers
+app.use(helmet());
+
+// 2. Configure CORS (frontend domain whitelist)
+app.use(
+  cors({
+    origin: "http://localhost:3000", // frontend adresi
+    credentials: true
+  })
+);
+
+// 3. Rate limiting (anti brute-force & flood protection)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 dakika
+  max: 100, // 15 dakikada maksimum 100 istek
+  message: "Çok fazla istek gönderdiniz, lütfen daha sonra tekrar deneyin"
+});
+app.use(limiter);
+
+// 4. Body parser with size limit (DoS protection)
+app.use(express.json({ limit: "10kb" }));
+
+/* ------------------- ROUTES ------------------- */
 
 app.get("/", (req, res) => {
-    res.send("Backend çalışıyor");
+  res.send("Backend çalışıyor");
 });
 
-app.use("/auth" , authRoutes);
-//authRoutes'u /auth path'i altında kullanıyoruz, böylece auth ile başlayan endpoint'ler authRoutes'ta tanımlanacak.
+app.use("/auth", authRoutes);
 app.use("/posts", postRoutes);
-//postRoutes'u /posts path'i altında kullanıyoruz, böylece posts ile başlayan endpoint'ler postRoutes'ta tanımlanacak.
-
 app.use("/comments", commentRoutes);
-//commentRoutes'u /comments path'i altında kullanıyoruz, böylece comments ile başlayan endpoint'ler commentRoutes'ta tanımlanacak.
+
+/* ------------------- ERROR HANDLER ------------------- */
 
 app.use(errorHandler);
 
+/* ------------------- SERVER ------------------- */
 
 const PORT = 3000;
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
