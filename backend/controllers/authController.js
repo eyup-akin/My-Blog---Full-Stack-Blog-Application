@@ -98,7 +98,7 @@ async function login(req, res, next) {
         const refreshToken = jwt.sign(
             { id: user.id },
             process.env.JWT_REFRESH_SECRET,
-            { expires: "7d" } // uzun süreli
+            { expiresIn: "7d" } // uzun süreli
         );
 
         await pool.query(

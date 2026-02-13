@@ -36,44 +36,60 @@ async function createPost(req, res, next) {
 
 }
 
-/* limit getiriyoruz buna biladerim bu güncellendi.
-async function getAllPosts(req, res) {
-    
-    const result = await pool.query(
-        "SELECT * FROM posts ORDER BY id DESC"
-    );
-
-    //res.json(result.rows);
-    success(res, result.rows);
-
-}
-*/
-
-async function getAllPosts(req, res, next) {
+// limit + search + filter özelliği olan get metodu
+async function getAllPosts(req, res, next){
 
     try {
 
-        //query parametreleri al
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search;
+        const author = req.query.author;
+        const sort = req.query.sort || "created_at";
+        const order = req.query.order === "asc" ? "ASC" : "DESC";
 
-        //negatif veya saçma değer kontrolü
-        if (page < 1 || limit < 1) {
+        if(page < 1 || limit < 1) {
             return next(new AppError("Page ve limit pozitif olmalı", 400));
         }
 
         const offset = (page - 1) * limit;
 
-        //toplam post sayısı
-        const countResult = await pool.query(
-            "SELECT COUNT(*) FROM posts"
-        );
+        //Dinamik WHERE oluşturma
+        let whereClauses = [];
+        let values = [];
+        let index = [];
 
+        if(search) {
+            whereClauses.push(`post.title ILIKE $${index}`);
+            values.push(`%${search}%`);
+            index++;
+        }
+
+        if(author) {
+            whereClauses.push(`posts.author_id = $${index}`);
+            values.push(author);
+            index++;
+        }
+
+        const whereSQL = whereClauses.length > 0
+            ? `WHERE ${whereClauses.join(" AND ")}`
+            : "";
+
+        
+        //toplam count
+        const countQuery = `
+            SELECT COUNT(*)
+            FROM posts
+            JOIN users ON posts.author_id = users.id
+            ${whereSQL}
+        `;
+
+
+        const countResult = await pool.query(countQuery, values);
         const total = parseInt(countResult.rows[0].count);
 
-        //sayfalı postları al
-        const postsResult = await pool.query(
-            `
+        //postları çek
+        const postsQuery = `
             SELECT 
                 posts.id,
                 posts.title,
@@ -82,14 +98,14 @@ async function getAllPosts(req, res, next) {
                 users.username
             FROM posts
             JOIN users ON posts.author_id = users.id
-            ORDER BY posts.id DESC
-            LIMIT $1 OFFSET $2
+            ${whereSQL}
+            ORDER BY posts.${sort} ${order}
+            LIMIT $${index} OFFSET $${index + 1}
+        `;
 
-            `,
-            [limit, offset]
-        );
+        values.push(limit, offset);
 
-        const totalPages = Math.ceil(total / limit);
+        const postsResult = await pool.query(postsQuery, values);
 
         success(res, {
             posts: postsResult.rows,
@@ -97,15 +113,18 @@ async function getAllPosts(req, res, next) {
                 page,
                 limit,
                 total,
-                totalPages
+                totalPages: Math.ceil(total / limit)
             }
         });
+        
 
     } catch (err) {
         next(err);
     }
 
 }
+
+
 
 //post güncelleme için endpointli fonksiyon
 async function updatePost(req, res, next){

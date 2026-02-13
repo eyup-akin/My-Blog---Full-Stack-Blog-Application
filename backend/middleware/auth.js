@@ -25,6 +25,10 @@ function authenticateToken(req, res, next) {
         return next(new AppError("Token yok", 401));
     }
 
+    if (!authHeader.startsWith("Bearer ")) {
+        return next(new AppError("Token formatı yanlış", 401));
+    }
+
     const token = authHeader.split(' ')[1];
 
     if (!token) {
