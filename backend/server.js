@@ -28,10 +28,11 @@ app.use(requestLogger);
 // 2. Configure CORS (frontend domain whitelist)
 app.use(
   cors({
-    origin: "http://localhost:3000", // frontend adresi
+    origin: "http://localhost:5173", //frontend adresi bu olmalı biladerim
     credentials: true
   })
 );
+
 
 // 3. Rate limiting (anti brute-force & flood protection)
 const limiter = rateLimit({
