@@ -37,35 +37,40 @@ async function createPost(req, res, next) {
 }
 
 // limit + search + filter özelliği olan get metodu
-async function getAllPosts(req, res, next){
-
+async function getAllPosts(req, res, next) {
     try {
 
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const search = req.query.search;
         const author = req.query.author;
-        const sort = req.query.sort || "created_at";
+        //const sort = req.query.sort || "created_at";
+        //sql injectiona karşı
+        const allowedSortFields = ["created_at", "title"];
+        const sort = allowedSortFields.includes(req.query.sort)
+            ? req.query.sort
+            : "created_at";
+
         const order = req.query.order === "asc" ? "ASC" : "DESC";
 
-        if(page < 1 || limit < 1) {
+        if (page < 1 || limit < 1) {
             return next(new AppError("Page ve limit pozitif olmalı", 400));
         }
 
         const offset = (page - 1) * limit;
 
-        //Dinamik WHERE oluşturma
+        // Dinamik WHERE oluşturma
         let whereClauses = [];
         let values = [];
-        let index = [];
+        let index = 1;
 
-        if(search) {
-            whereClauses.push(`post.title ILIKE $${index}`);
+        if (search) {
+            whereClauses.push(`posts.title ILIKE $${index}`);
             values.push(`%${search}%`);
             index++;
         }
 
-        if(author) {
+        if (author) {
             whereClauses.push(`posts.author_id = $${index}`);
             values.push(author);
             index++;
@@ -75,8 +80,7 @@ async function getAllPosts(req, res, next){
             ? `WHERE ${whereClauses.join(" AND ")}`
             : "";
 
-        
-        //toplam count
+        // Toplam count
         const countQuery = `
             SELECT COUNT(*)
             FROM posts
@@ -84,13 +88,12 @@ async function getAllPosts(req, res, next){
             ${whereSQL}
         `;
 
-
         const countResult = await pool.query(countQuery, values);
         const total = parseInt(countResult.rows[0].count);
 
-        //postları çek
+        // Postları çek
         const postsQuery = `
-            SELECT 
+            SELECT
                 posts.id,
                 posts.title,
                 posts.content,
@@ -116,13 +119,12 @@ async function getAllPosts(req, res, next){
                 totalPages: Math.ceil(total / limit)
             }
         });
-        
 
     } catch (err) {
         next(err);
     }
-
 }
+
 
 
 
