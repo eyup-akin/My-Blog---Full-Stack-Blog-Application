@@ -15,11 +15,15 @@ const commentRoutes = require("./routes/commentRoutes");
 
 // Global error handler
 const errorHandler = require("./middleware/errorHandler");
+const requestLogger = require("./middleware/requestLogger");
 
 /* ------------------- SECURITY MIDDLEWARE ------------------- */
 
 // 1. Set secure HTTP headers
 app.use(helmet());
+
+app.use(requestLogger);
+
 
 // 2. Configure CORS (frontend domain whitelist)
 app.use(
