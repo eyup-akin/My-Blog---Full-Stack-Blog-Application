@@ -1,7 +1,6 @@
 import { createContext,useContext, useState } from "react"
 
 import api from "../api/axios"
-import { login } from "../../../backend/controllers/authController"
 
 const AuthContext = createContext()
 
@@ -17,11 +16,8 @@ export function AuthProvider({ children }) {
 
         setAccessToken(res.data.data.accessToken)
         setUser(res.data.data.user)
-
     }
 
-    
-    
 
 
     const logout = () => {
