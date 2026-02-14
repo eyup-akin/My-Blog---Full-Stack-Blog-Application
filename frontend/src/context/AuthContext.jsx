@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, useContext } from 'react';
-import api from '../utils/api';
+import api, { setAuthToken } from '../utils/api';
 
 const AuthContext = createContext();
 
@@ -17,15 +17,26 @@ export const AuthProvider = ({ children }) => {
         // ve yeni bir access token + user bilgisi döner
         const response = await api.post('/auth/refresh');
 
-        if (response.data.data && response.data.data.user) {
-          setUser(response.data.data.user);
-          if (response.data.data.accessToken) {
-            api.setAuthToken(response.data.data.accessToken);
+        // Backend response format: success(res, { accessToken, user })
+        // So response.data.data contains { accessToken, user }
+        const data = response.data.data;
+        console.log("CheckAuth response data:", data);
+
+        if (data && data.user) {
+          setUser(data.user);
+
+          const accessToken = data.accessToken || response.data.accessToken;
+
+          if (accessToken) {
+            console.log("Setting access token from checkAuth");
+            setAuthToken(accessToken);
+          } else {
+            console.log("No access token in checkAuth response");
           }
         }
 
       } catch (error) {
-        console.log("Not authenticated via refresh token");
+        console.log("Not authenticated via refresh token", error);
         setUser(null);
       } finally {
         setLoading(false);
@@ -38,18 +49,25 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await api.post('/auth/login', { email, password });
-      // Backend cookie set ettiği için burada token saklamaya gerek yok
-      // Ancak user bilgisini state'e kaydedelim
-      // response.data yapısı backend'e göre değişebilir
-      // Backend success fonksiyonunda datayı nasıl dönüyor kontrol ettik: { message, data: { user, accessToken } }
 
-      // Backend login controller'a bakınca: success(res, { user: user, accessToken }, 200);
-      // Yani response.data.data.user olacak.
+      // Backend response format: success(res, { accessToken, user })
+      // So response.data.data contains { accessToken, user }
+      const data = response.data.data;
+      console.log("Login response data:", data);
 
-      if (response.data.data && response.data.data.user) {
-        setUser(response.data.data.user);
-        if (response.data.data.accessToken) {
-          api.setAuthToken(response.data.data.accessToken);
+      if (data && data.user) {
+        setUser(data.user);
+
+        // Check for accessToken in different possible locations just in case
+        const accessToken = data.accessToken || response.data.accessToken || (data.user && data.user.accessToken);
+
+        if (accessToken) {
+          console.log("Setting access token from login");
+          setAuthToken(accessToken);
+        } else {
+          console.error("CRITICAL: No access token found in login response!", data);
+          // Fallback: Check if we have one in localStorage from a previous session
+          // But actually we should probably fail here or warn
         }
       }
       return { success: true };
@@ -76,9 +94,11 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await api.post('/auth/logout');
-      setUser(null);
     } catch (error) {
       console.error("Logout failed", error);
+    } finally {
+      setUser(null);
+      setAuthToken(null);
     }
   };
 

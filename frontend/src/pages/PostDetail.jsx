@@ -24,8 +24,9 @@ const PostDetail = () => {
                 // Backend: success(res, { post: result.rows[0] });
                 setPost(postRes.data.data.post);
 
-                // Backend: success(res, { comments: comments.rows });
-                setComments(commentsRes.data.data.comments);
+                // Backend: success(res, commentResult.rows); -> commentResult.rows is array.
+                // Wrapped: { data: [array] }
+                setComments(commentsRes.data.data);
             } catch (err) {
                 setError('Failed to load post');
                 console.error(err);
@@ -46,22 +47,45 @@ const PostDetail = () => {
             });
             // Refresh comments
             const res = await api.get(`/posts/${id}/comments`);
-            setComments(res.data.data.comments);
+            setComments(res.data.data);
             setNewComment('');
         } catch (err) {
             alert('Failed to add comment');
         }
     };
 
-    const handleDelete = async () => {
-        if (window.confirm('Are you sure you want to delete this post?')) {
+    const handleCommentDelete = async (commentId) => {
+        if (window.confirm('Are you sure you want to delete this comment?')) {
             try {
-                await api.delete(`/posts/${id}`);
-                navigate('/');
+                await api.delete(`/comments/${commentId}`);
+                // Refresh comments
+                const res = await api.get(`/posts/${id}/comments`);
+                setComments(res.data.data);
             } catch (err) {
-                alert('Failed to delete post');
+                alert('Failed to delete comment');
             }
         }
+    };
+
+    const handleCommentUpdate = async (commentId, newContent) => {
+        try {
+            await api.put(`/comments/${commentId}`, { content: newContent });
+            // Refresh comments
+            const res = await api.get(`/posts/${id}/comments`);
+            setComments(res.data.data);
+            setEditingComment(null);
+        } catch (err) {
+            alert('Failed to update comment');
+        }
+    };
+
+    // State for editing comment
+    const [editingComment, setEditingComment] = useState(null);
+    const [editContent, setEditContent] = useState('');
+
+    const startEditing = (comment) => {
+        setEditingComment(comment.id);
+        setEditContent(comment.content);
     };
 
     if (loading) return <div className="text-center">Loading...</div>;
@@ -76,12 +100,20 @@ const PostDetail = () => {
                     <div className="flex justify-between items-center text-sm text-gray-500">
                         <span>By {post.username} on {new Date(post.created_at).toLocaleDateString()}</span>
                         {user && (user.id === post.author_id || user.role === 'admin') && (
-                            <button
-                                onClick={handleDelete}
-                                className="text-red-600 hover:text-red-800"
-                            >
-                                Delete Post
-                            </button>
+                            <div className="space-x-2">
+                                <button
+                                    onClick={() => navigate(`/edit-post/${id}`)}
+                                    className="text-indigo-600 hover:text-indigo-800"
+                                >
+                                    Edit Post
+                                </button>
+                                <button
+                                    onClick={handleDelete}
+                                    className="text-red-600 hover:text-red-800"
+                                >
+                                    Delete Post
+                                </button>
+                            </div>
                         )}
                     </div>
                 </header>
@@ -127,7 +159,50 @@ const PostDetail = () => {
                                     {new Date(comment.created_at).toLocaleDateString()}
                                 </span>
                             </div>
-                            <p className="text-gray-700">{comment.content}</p>
+
+                            {editingComment === comment.id ? (
+                                <div className="mt-2">
+                                    <textarea
+                                        className="w-full p-2 border rounded"
+                                        value={editContent}
+                                        onChange={(e) => setEditContent(e.target.value)}
+                                    />
+                                    <div className="mt-2 space-x-2">
+                                        <button
+                                            onClick={() => handleCommentUpdate(comment.id, editContent)}
+                                            className="text-xs bg-green-500 text-white px-2 py-1 rounded"
+                                        >
+                                            Save
+                                        </button>
+                                        <button
+                                            onClick={() => setEditingComment(null)}
+                                            className="text-xs bg-gray-400 text-white px-2 py-1 rounded"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <p className="text-gray-700">{comment.content}</p>
+                                    {user && (user.id === comment.author_id /* || user.role === 'admin' - comment data returns username not role, check backend if author_id is enough */) && (
+                                        <div className="mt-2 space-x-2 text-xs">
+                                            <button
+                                                onClick={() => startEditing(comment)}
+                                                className="text-indigo-600 hover:text-indigo-800"
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={() => handleCommentDelete(comment.id)}
+                                                className="text-red-600 hover:text-red-800"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
+                            )}
                         </div>
                     ))}
                     {comments.length === 0 && (

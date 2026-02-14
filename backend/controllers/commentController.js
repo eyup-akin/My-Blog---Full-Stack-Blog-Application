@@ -40,15 +40,15 @@ async function addComment(req, res, next) {
         );
 
         //res.send("Yorum başarıyla eklendi");
-        success(res, {message: "Yorum başarıyla eklendi"}, 201);
+        success(res, { message: "Yorum başarıyla eklendi" }, 201);
 
     } catch (err) {
         /*
         console.error(err);
         res.status(500).send("Yorum eklenemedi");
         */
-       //error handlerden sonra 
-       next(err);
+        //error handlerden sonra 
+        next(err);
     }
 }
 
@@ -70,7 +70,7 @@ async function getCommentsByPostId(req, res, next) {
 
         //postId'ye ait yorumları getiriyoruz.
         const commentResult = await pool.query(
-             `
+            `
             SELECT 
                 comments.id,
                 comments.content,
@@ -88,15 +88,15 @@ async function getCommentsByPostId(req, res, next) {
         success(res, commentResult.rows);
 
 
-    } catch (err){
+    } catch (err) {
         next(err);
     }
 
 }
 
 async function deleteComment(req, res, next) {
-    
-    try{
+
+    try {
 
         const commentId = req.params.id;
 
@@ -106,17 +106,17 @@ async function deleteComment(req, res, next) {
             [commentId]
         );
 
-        if (commentCheck.rowCount === 0){
+        if (commentCheck.rowCount === 0) {
             return next(new AppError("Yorum bulunamadı", 404));
         }
 
         const commentAuthorId = commentCheck.rows[0].author_id;
 
         // ownership veya admin kontrol
-        if(
+        if (
             req.user.role !== "admin" &&
             req.user.id !== commentAuthorId
-        ){
+        ) {
             return next(new AppError("Bu yorumu silme yetkin yok", 403));
         }
 
@@ -129,15 +129,45 @@ async function deleteComment(req, res, next) {
         //res.send("Yorum silindi");
         success(res, { message: "Yorum silindi" });
 
-
-    }catch(err){
+    } catch (err) {
         next(err);
     }
 
 }
 
+async function updateComment(req, res, next) {
+    try {
+        const commentId = req.params.id;
+        const { content } = req.body;
+
+        const commentCheck = await pool.query(
+            "SELECT author_id FROM comments WHERE id = $1",
+            [commentId]
+        );
+
+        if (commentCheck.rowCount === 0) {
+            return next(new AppError("Yorum bulunamadı", 404));
+        }
+
+        if (req.user.id !== commentCheck.rows[0].author_id) {
+            return next(new AppError("Bu yorumu güncelleme yetkin yok", 403));
+        }
+
+        await pool.query(
+            "UPDATE comments SET content = $1 WHERE id = $2",
+            [content, commentId]
+        );
+
+        success(res, { message: "Yorum güncellendi" });
+
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     addComment,
     getCommentsByPostId,
-    deleteComment
+    deleteComment,
+    updateComment
 };
