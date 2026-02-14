@@ -13,15 +13,17 @@ const {
     createPost,
     getAllPosts,
     updatePost,
-    deletePost
+    deletePost,
+    getPostById
 } = require("../controllers/postController");
 
 
 const { getCommentsByPostId } = require("../controllers/commentController");
 
-router.post("/", authenticateToken,postValidation, createPost);
+router.post("/", authenticateToken, postValidation, createPost);
 router.get("/", getAllPosts);
-router.put("/:id", authenticateToken,postValidation, updatePost);
+router.get("/:id", getPostById);
+router.put("/:id", authenticateToken, postValidation, updatePost);
 router.delete("/:id", authenticateToken, deletePost);
 
 

@@ -208,9 +208,41 @@ async function deletePost(req, res, next) {
 }
 
 
+async function getPostById(req, res, next) {
+    try {
+        const postId = req.params.id;
+
+        const postQuery = `
+            SELECT 
+                posts.id, 
+                posts.title, 
+                posts.content, 
+                posts.created_at, 
+                users.username,
+                users.id as author_id
+            FROM posts
+            JOIN users ON posts.author_id = users.id
+            WHERE posts.id = $1
+        `;
+
+        const result = await pool.query(postQuery, [postId]);
+
+        if (result.rowCount === 0) {
+            return next(new AppError("Post bulunamadı", 404));
+        }
+
+        success(res, { post: result.rows[0] });
+
+    } catch (err) {
+        next(err);
+    }
+}
+
+
 module.exports = {
     createPost,
     getAllPosts,
     updatePost,
-    deletePost
+    deletePost,
+    getPostById
 };
