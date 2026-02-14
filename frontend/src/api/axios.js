@@ -2,7 +2,9 @@ import axios from "axios"
 
 let accessToken = null
 
-export const setAccessToken = (token) => {
+
+//axios interceptor iÃ§in token setter
+export const setAxiosToken = (token) => {
     accessToken = token
 }
 

@@ -17,6 +17,10 @@ const commentRoutes = require("./routes/commentRoutes");
 const errorHandler = require("./middleware/errorHandler");
 const requestLogger = require("./middleware/requestLogger");
 
+// çerezler için
+const cookieParser = require("cookie-parser");
+
+
 /* ------------------- SECURITY MIDDLEWARE ------------------- */
 
 // 1. Set secure HTTP headers
@@ -44,6 +48,10 @@ app.use(limiter);
 
 // 4. Body parser with size limit (DoS protection)
 app.use(express.json({ limit: "10kb" }));
+
+// Cookie parser 
+app.use(cookieParser());
+
 
 /* ------------------- ROUTES ------------------- */
 

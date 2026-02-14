@@ -1,19 +1,19 @@
 const bcrypt = require("bcrypt");
-//kütüphaneyi import ediyoruz, parolaları hash'lemek ve doğrulamak için kullanacağız.
+//kÃ¼tÃ¼phaneyi import ediyoruz, parolalarÄ± hash'lemek ve doÄŸrulamak iÃ§in kullanacaÄŸÄ±z.
 
 const jwt = require("jsonwebtoken");
-//kütüphaneyi import ediyoruz, JWT token'ları oluşturmak ve doğrulamak için kullanacağız.
+//kÃ¼tÃ¼phaneyi import ediyoruz, JWT token'larÄ± oluÅŸturmak ve doÄŸrulamak iÃ§in kullanacaÄŸÄ±z.
 
 const pool = require("../db");
-//veritabanı bağlantısı için pool'u import ediyoruz.
+//veritabanÄ± baÄŸlantÄ±sÄ± iÃ§in pool'u import ediyoruz.
 
-//error handler için 
+//error handler iÃ§in 
 const AppError = require("../utils/AppError");
 
-//errorları response ederken birlikteilik için
+//errorlarÄ± response ederken birlikteilik iÃ§in
 const { success } = require("../utils/response");
 
-//register fonksiyonu, yeni kullanıcı kaydı için kullanılır. Bu fonksiyon, authRoutes.js'deki /register endpoint'inde çağrılacak.
+//register fonksiyonu, yeni kullanÄ±cÄ± kaydÄ± iÃ§in kullanÄ±lÄ±r. Bu fonksiyon, authRoutes.js'deki /register endpoint'inde Ã§aÄŸrÄ±lacak.
 async function register(req, res, next) {
 
     try {
@@ -21,7 +21,7 @@ async function register(req, res, next) {
         const { username, email, password } = req.body;
 /*
         if (!username || !email || !password) {
-            return next(new AppError("Tüm alanlar zorunludur", 400));
+            return next(new AppError("TÃ¼m alanlar zorunludur", 400));
         }
 */
         const existingUser = await pool.query(
@@ -30,7 +30,7 @@ async function register(req, res, next) {
         );
 
         if (existingUser.rowCount > 0) {
-            return next(new AppError("Bu email zaten kullanılıyor", 400));
+            return next(new AppError("Bu email zaten kullanÄ±lÄ±yor", 400));
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -43,16 +43,16 @@ async function register(req, res, next) {
         );
 
 
-        //bunu artık kullanmıor-yrmuz
-        //res.send("Kullanıcı başarıyla kaydedildi");
+        //bunu artÄ±k kullanmÄ±or-yrmuz
+        //res.send("KullanÄ±cÄ± baÅŸarÄ±yla kaydedildi");
 
-        success(res, { message: "Kullanıcı oluşturuldu"}, 201);
+        success(res, { message: "KullanÄ±cÄ± oluÅŸturuldu"}, 201);
 
 
     }catch (err) {
         /*
         console.error(err);
-        res.status(500).send("Sunucu hatası");
+        res.status(500).send("Sunucu hatasÄ±");
         */
        next(err);
     }
@@ -60,25 +60,21 @@ async function register(req, res, next) {
 }
 
 
-//ekleme yaptık global handler için next paramaetresi
-//login fonksiyonu, kullanıcıların giriş yapması için kullanılır. Bu fonksiyon, authRoutes.js'deki /login endpoint'inde çağrılacak.
+//ekleme yaptÄ±k global handler iÃ§in next paramaetresi
+//login fonksiyonu, kullanÄ±cÄ±larÄ±n giriÅŸ yapmasÄ± iÃ§in kullanÄ±lÄ±r. Bu fonksiyon, authRoutes.js'deki /login endpoint'inde Ã§aÄŸrÄ±lacak.
+// login fonksiyonu
 async function login(req, res, next) {
-
     try {
 
         const { email, password } = req.body;
-/*
-        if (!email || !password) {
-            return next(new AppError("Email ve parola zorunludur", 400));
-        }
-*/
+
         const result = await pool.query(
             "SELECT * FROM users WHERE email = $1",
             [email]
         );
 
         if (result.rowCount === 0) {
-            return next(new AppError("Bu email ile kayıtlı kullanıcı bulunamadı", 400));
+            return next(new AppError("Bu email ile kayÄ±tlÄ± kullanÄ±cÄ± bulunamadÄ±", 400));
         }
 
         const user = result.rows[0];
@@ -86,19 +82,19 @@ async function login(req, res, next) {
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
-            return next(new AppError("Parola yanlış", 400));
+            return next(new AppError("Parola yanlÄ±ÅŸ", 400));
         }
 
-       const accessToken = jwt.sign(
+        const accessToken = jwt.sign(
             { id: user.id, username: user.username, role: user.role },
             process.env.JWT_SECRET,
-            { expiresIn: "15m" } // kısa süreli
+            { expiresIn: "15m" }
         );
 
         const refreshToken = jwt.sign(
             { id: user.id },
             process.env.JWT_REFRESH_SECRET,
-            { expiresIn: "7d" } // uzun süreli
+            { expiresIn: "7d" }
         );
 
         await pool.query(
@@ -106,9 +102,16 @@ async function login(req, res, next) {
             [user.id, refreshToken]
         );
 
+        // REFRESH TOKEN COOKIE OLARAK GÖNDER
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: false,       // dev ortam - production'da true olmalı
+            sameSite: "lax",     // localhost için uygun
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
         success(res, {
             accessToken,
-            refreshToken,
             user: {
                 id: user.id,
                 username: user.username,
@@ -116,22 +119,17 @@ async function login(req, res, next) {
             }
         });
 
-
-    }catch (err){
-        /*
-        console.error(err);
-        res.status(500).send("Login hatası");
-        */
-       next(err);
+    } catch (err) {
+        next(err);
     }
-
 }
 
 async function refresh(req, res, next) {
 
     try {
 
-        const { refreshToken } = req.body;
+        //tokeni cookielerden okuyoruz
+        const refreshToken = req.cookies.refreshToken;
 
         if (!refreshToken) {
             return next(new AppError("Refresh token gerekli", 401));
@@ -143,23 +141,42 @@ async function refresh(req, res, next) {
             [refreshToken]
         );
 
-        if(tokenCheck.rowCount === o){
+        if(tokenCheck.rowCount === 0){
             return next(new AppError("Geçersiz refresh token", 403));
         }
 
         //token doğrula
-        jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, user) => {
+        jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, async (err, decoded) => {
             if(err){
                 return next(new AppError("Refresh token geçersiz", 403));
             }
 
+            // User bilgisini DB'den çek
+            const userResult = await pool.query(
+                "SELECT id, username, email, role FROM users WHERE id = $1",
+                [decoded.id]
+            );
+
+            if (userResult.rowCount === 0) {
+                return next(new AppError("Kullanıcı bulunamadı", 404));
+            }
+
+            const user = userResult.rows[0];
+
             const newAccessToken = jwt.sign(
-                { id: user.id },
+                { id: user.id, username: user.username, role: user.role },
                 process.env.JWT_SECRET,
                 { expiresIn: "15m" }
             );
 
-            success(res, { accessToken: newAccessToken });
+            success(res, { 
+                accessToken: newAccessToken,
+                user: {
+                    id: user.id,
+                    username: user.username,
+                    role: user.role
+                }
+            });
 
         });
 
@@ -176,12 +193,14 @@ async function logout(req, res, next){
 
     try {
 
-        const { refreshToken } = req.body;
+        const refreshToken = req.cookies.refreshToken;
 
         await pool.query(
             "DELETE FROM refresh_tokens WHERE token = $1",
             [refreshToken]
         );
+
+        res.clearCookie("refreshToken")
 
         success(res, { message: "Çıkış yapıldı" });
 
@@ -203,7 +222,7 @@ async function getMe(req, res, next){
         );
 
         if(result.rowCount === 0){
-            return next(new AppError("Kullanıcı bulunamadı", 404));
+            return next(new AppError("KullanÄ±cÄ± bulunamadÄ±", 404));
         }
 
         success(res, result.rows[0]);
@@ -216,7 +235,7 @@ async function getMe(req, res, next){
 }
 
 
-//admin oluşturmak için ayrı bir endpoint
+//admin oluÅŸturmak iÃ§in ayrÄ± bir endpoint
 async function createAdmin(req , res, next){
 
     try {
@@ -224,7 +243,7 @@ async function createAdmin(req , res, next){
         const { username, email, password } = req.body;
 /*
         if(!username || !email || !password) {
-            return next(new AppError("Tüm alanlar zorunludur", 400));
+            return next(new AppError("TÃ¼m alanlar zorunludur", 400));
         }
 */
         const existingUser = await pool.query(
@@ -233,7 +252,7 @@ async function createAdmin(req , res, next){
         );
 
         if(existingUser.rowCount > 0) {
-            return next(new AppError("Bu email zaten kullanılıyor", 400));
+            return next(new AppError("Bu email zaten kullanÄ±lÄ±yor", 400));
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -243,7 +262,7 @@ async function createAdmin(req , res, next){
             [username, email, hashedPassword, "admin"]
         );
 
-        success(res, { message: "Admin oluşturuldu" }, 201);
+        success(res, { message: "Admin oluÅŸturuldu" }, 201);
 
 
     } catch (err){

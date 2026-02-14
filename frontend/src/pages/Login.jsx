@@ -23,7 +23,7 @@ function Login() {
             alert("Giriş başarılı")
             */
             await login(email, password) 
-            navigate("/") //ana sayfaya yönlendir
+            navigate("/dashboard") //ana sayfaya yönlendir
         } catch (err) {
             console.error(err)
             alert("Giriş başarısız")
