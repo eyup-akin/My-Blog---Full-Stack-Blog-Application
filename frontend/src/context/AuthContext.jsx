@@ -1,12 +1,13 @@
 import { createContext,useContext, useState } from "react"
 
-import api from "../api/axios"
+import api, { setAccessToken } from "../api/axios"
+
 
 const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null)
-    const [accessToken, setAccessToken] = useState(null)
+    const [accessToken, setAccessTokenState] = useState(null)
 
     const login = async (email, password) => {
         const res = await api.post("/auth/login", {
@@ -14,7 +15,10 @@ export function AuthProvider({ children }) {
             password,
         })
 
-        setAccessToken(res.data.data.accessToken)
+        const token = res.data.data.accessToken
+
+        setAccessTokenState(token) //react state
+        setAccessToken(token) // interceptor a token veriyoruz
         setUser(res.data.data.user)
     }
 
@@ -22,7 +26,8 @@ export function AuthProvider({ children }) {
 
     const logout = () => {
         setUser(null)
-        setAccessToken(null)
+        setAccessTokenState(null)
+        setAxiosToken(null)
     }
 
 

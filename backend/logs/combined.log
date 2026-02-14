@@ -37,3 +37,18 @@
 {"level":"info","message":{"ip":"::1","method":"GET","timestamp":"2026-02-13T18:45:02.532Z","url":"/posts"},"timestamp":"2026-02-13T18:45:02.532Z"}
 {"level":"info","message":{"ip":"::1","method":"GET","timestamp":"2026-02-13T18:47:10.367Z","url":"/posts"},"timestamp":"2026-02-13T18:47:10.369Z"}
 {"level":"info","message":{"ip":"::1","method":"GET","timestamp":"2026-02-13T18:47:10.428Z","url":"/posts"},"timestamp":"2026-02-13T18:47:10.428Z"}
+{"level":"info","message":{"ip":"::1","method":"OPTIONS","timestamp":"2026-02-13T19:29:09.427Z","url":"/auth/login"},"timestamp":"2026-02-13T19:29:09.429Z"}
+{"level":"info","message":{"ip":"::1","method":"POST","timestamp":"2026-02-13T19:29:09.440Z","url":"/auth/login"},"timestamp":"2026-02-13T19:29:09.440Z"}
+{"level":"info","message":{"ip":"::1","method":"OPTIONS","timestamp":"2026-02-13T19:31:09.159Z","url":"/auth/login"},"timestamp":"2026-02-13T19:31:09.159Z"}
+{"level":"info","message":{"ip":"::1","method":"POST","timestamp":"2026-02-13T19:31:09.161Z","url":"/auth/login"},"timestamp":"2026-02-13T19:31:09.161Z"}
+{"level":"info","message":{"ip":"::1","method":"OPTIONS","timestamp":"2026-02-14T12:57:04.671Z","url":"/auth/login"},"timestamp":"2026-02-14T12:57:04.672Z"}
+{"level":"info","message":{"ip":"::1","method":"POST","timestamp":"2026-02-14T12:57:04.677Z","url":"/auth/login"},"timestamp":"2026-02-14T12:57:04.677Z"}
+{"level":"error","message":"Bu email ile kayıtlı kullanıcı bulunamadı","stack":"Error: Bu email ile kayıtlı kullanıcı bulunamadı\n    at login (C:\\projects\\my-blog\\backend\\controllers\\authController.js:81:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)","statusCode":400,"timestamp":"2026-02-14T12:57:04.765Z"}
+{"level":"info","message":{"ip":"::1","method":"OPTIONS","timestamp":"2026-02-14T12:57:10.475Z","url":"/auth/login"},"timestamp":"2026-02-14T12:57:10.475Z"}
+{"level":"info","message":{"ip":"::1","method":"POST","timestamp":"2026-02-14T12:57:10.478Z","url":"/auth/login"},"timestamp":"2026-02-14T12:57:10.478Z"}
+{"level":"info","message":{"ip":"::1","method":"OPTIONS","timestamp":"2026-02-14T12:59:38.540Z","url":"/auth/login"},"timestamp":"2026-02-14T12:59:38.540Z"}
+{"level":"info","message":{"ip":"::1","method":"POST","timestamp":"2026-02-14T12:59:38.544Z","url":"/auth/login"},"timestamp":"2026-02-14T12:59:38.544Z"}
+{"level":"info","message":{"ip":"::1","method":"GET","timestamp":"2026-02-14T13:01:18.157Z","url":"/posts"},"timestamp":"2026-02-14T13:01:18.157Z"}
+{"level":"info","message":{"ip":"::1","method":"GET","timestamp":"2026-02-14T13:01:18.214Z","url":"/posts"},"timestamp":"2026-02-14T13:01:18.214Z"}
+{"level":"info","message":{"ip":"::1","method":"OPTIONS","timestamp":"2026-02-14T13:02:38.308Z","url":"/auth/login"},"timestamp":"2026-02-14T13:02:38.308Z"}
+{"level":"info","message":{"ip":"::1","method":"POST","timestamp":"2026-02-14T13:02:38.312Z","url":"/auth/login"},"timestamp":"2026-02-14T13:02:38.312Z"}
