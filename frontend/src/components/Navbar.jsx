@@ -1,8 +1,14 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
     return (
         <nav className="bg-white shadow-md">
@@ -26,7 +32,7 @@ const Navbar = () => {
                                     New Post
                                 </Link>
                                 <button
-                                    onClick={logout}
+                                    onClick={handleLogout}
                                     className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
                                 >
                                     Logout

@@ -24,7 +24,6 @@ api.interceptors.response.use(
 let token = localStorage.getItem('token');
 
 export const setAuthToken = (newToken) => {
-    console.log("api.js: setAuthToken called", newToken ? "with token" : "with null");
     token = newToken;
     if (newToken) {
         localStorage.setItem('token', newToken);
@@ -36,10 +35,7 @@ export const setAuthToken = (newToken) => {
 api.interceptors.request.use(
     (config) => {
         if (token) {
-            console.log("api.js: Attaching token to request");
             config.headers.Authorization = `Bearer ${token}`;
-        } else {
-            console.log("api.js: No token to attach");
         }
         return config;
     },

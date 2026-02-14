@@ -12,26 +12,29 @@ async function createPost(req, res, next) {
     try {
 
         const { title, content } = req.body;
-/*
-        if (!title || !content) {
-            //return res.status(400).send("Başlık ve içerik zorunludur");
-            return next(new AppError("Başlık ve içerik zorunludur"))
-        }
-*/
-        await pool.query(
-            "INSERT INTO posts (title, content, author_id) VALUES ($1, $2, $3)",
+        /*
+                if (!title || !content) {
+                    //return res.status(400).send("Başlık ve içerik zorunludur");
+                    return next(new AppError("Başlık ve içerik zorunludur"))
+                }
+        */
+        const newPost = await pool.query(
+            "INSERT INTO posts (title, content, author_id) VALUES ($1, $2, $3) RETURNING id",
             [title, content, req.user.id]
         );
 
         //res.send("Post başarıyla eklendi");
-        success(res, { message: "Post başarıyla eklendi" }, 201);
+        success(res, {
+            message: "Post başarıyla eklendi",
+            postId: newPost.rows[0].id
+        }, 201);
 
-    }catch (err) {
+    } catch (err) {
         /*
         console.error(err);
         res.status(500).send("Post eklenemedi");
         */
-       next(err);
+        next(err);
     }
 
 }
@@ -129,17 +132,17 @@ async function getAllPosts(req, res, next) {
 
 
 //post güncelleme için endpointli fonksiyon
-async function updatePost(req, res, next){
+async function updatePost(req, res, next) {
 
     try {
 
         const postId = req.params.id;
         const { title, content } = req.body;
-/*
-        if(!title || !content){
-            return next(new AppError("Başlık ve içerik zorunludur", 400));
-        }
-*/
+        /*
+                if(!title || !content){
+                    return next(new AppError("Başlık ve içerik zorunludur", 400));
+                }
+        */
         const postCheck = await pool.query(
             "SELECT author_id FROM posts WHERE id = $1",
             [postId]
@@ -165,7 +168,7 @@ async function updatePost(req, res, next){
         success(res, { message: "Post güncellendi" });
 
 
-    } catch (err){
+    } catch (err) {
         next(err);
     }
 

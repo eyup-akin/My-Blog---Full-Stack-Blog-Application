@@ -11,8 +11,14 @@ const CreatePost = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/posts', { title, content });
-            navigate('/');
+            const response = await api.post('/posts', { title, content });
+            // Backend returns: { data: { message, postId } }
+            const postId = response.data.data.postId;
+            if (postId) {
+                navigate(`/posts/${postId}`);
+            } else {
+                navigate('/');
+            }
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to create post');
         }
