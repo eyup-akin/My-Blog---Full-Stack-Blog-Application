@@ -34,6 +34,7 @@ app.use(helmet());
 app.use(requestLogger);
 
 
+/*
 // 2. Configure CORS (frontend domain whitelist)
 app.use(
   cors({
@@ -41,6 +42,15 @@ app.use(
     credentials: true
   })
 );
+*/
+
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true
+  })
+);
+
 
 
 // 3. Rate limiting (anti brute-force & flood protection)
