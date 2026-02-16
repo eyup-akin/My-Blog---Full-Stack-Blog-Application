@@ -1,20 +1,11 @@
-const { Pool } = require("pg"); // PostgreSQL ile konuşmamı sağlayan kütüphane
-//bir nevi import ettik pg kütüphanesini
-//pool: bağlantı havuzu oluşturmak için kullanılır
-
+const { Pool } = require("pg");
 require("dotenv").config();
 
 const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
-//bağlantı bilgilerini .env dosyasından alıyoruz
-//env dosyasını okumak için dotenv kütüphanesini kullandık
-//bu bilgilerle database bağlantısı kuruyoruz
-
 
 module.exports = pool;
-//pool'u diğer dosyalarda kullanabilmek için dışa aktarıyoruz
