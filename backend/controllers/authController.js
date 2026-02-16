@@ -19,11 +19,11 @@ async function register(req, res, next) {
     try {
 
         const { username, email, password } = req.body;
-/*
-        if (!username || !email || !password) {
-            return next(new AppError("TÃ¼m alanlar zorunludur", 400));
-        }
-*/
+        /*
+                if (!username || !email || !password) {
+                    return next(new AppError("TÃ¼m alanlar zorunludur", 400));
+                }
+        */
         const existingUser = await pool.query(
             "SELECT * FROM users WHERE email = $1",
             [email]
@@ -46,15 +46,15 @@ async function register(req, res, next) {
         //bunu artÄ±k kullanmÄ±or-yrmuz
         //res.send("KullanÄ±cÄ± baÅŸarÄ±yla kaydedildi");
 
-        success(res, { message: "KullanÄ±cÄ± oluÅŸturuldu"}, 201);
+        success(res, { message: "Kullanıcı oluşturuldu" }, 201);
 
 
-    }catch (err) {
+    } catch (err) {
         /*
         console.error(err);
         res.status(500).send("Sunucu hatasÄ±");
         */
-       next(err);
+        next(err);
     }
 
 }
@@ -105,8 +105,8 @@ async function login(req, res, next) {
         // REFRESH TOKEN COOKIE OLARAK GÖNDER
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: false,       // dev ortam - production'da true olmalı
-            sameSite: "lax",     // localhost için uygun
+            secure: true, // Render https üzerinden hizmet veriyor, localde de secure true sorun olmaz genelde ama false da olabilir
+            sameSite: "none", // Cross-site cookie için gerekli
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
@@ -141,13 +141,13 @@ async function refresh(req, res, next) {
             [refreshToken]
         );
 
-        if(tokenCheck.rowCount === 0){
+        if (tokenCheck.rowCount === 0) {
             return next(new AppError("Geçersiz refresh token", 403));
         }
 
         //token doğrula
         jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, async (err, decoded) => {
-            if(err){
+            if (err) {
                 return next(new AppError("Refresh token geçersiz", 403));
             }
 
@@ -169,7 +169,7 @@ async function refresh(req, res, next) {
                 { expiresIn: "15m" }
             );
 
-            success(res, { 
+            success(res, {
                 accessToken: newAccessToken,
                 user: {
                     id: user.id,
@@ -189,7 +189,7 @@ async function refresh(req, res, next) {
 
 
 //logout endpointi
-async function logout(req, res, next){
+async function logout(req, res, next) {
 
     try {
 
@@ -204,13 +204,13 @@ async function logout(req, res, next){
 
         success(res, { message: "Çıkış yapıldı" });
 
-    } catch (err){
+    } catch (err) {
         next(err);
     }
 
 }
 
-async function getMe(req, res, next){
+async function getMe(req, res, next) {
 
     try {
 
@@ -221,7 +221,7 @@ async function getMe(req, res, next){
             [userId]
         );
 
-        if(result.rowCount === 0){
+        if (result.rowCount === 0) {
             return next(new AppError("KullanÄ±cÄ± bulunamadÄ±", 404));
         }
 
@@ -236,22 +236,22 @@ async function getMe(req, res, next){
 
 
 //admin oluÅŸturmak iÃ§in ayrÄ± bir endpoint
-async function createAdmin(req , res, next){
+async function createAdmin(req, res, next) {
 
     try {
 
         const { username, email, password } = req.body;
-/*
-        if(!username || !email || !password) {
-            return next(new AppError("TÃ¼m alanlar zorunludur", 400));
-        }
-*/
+        /*
+                if(!username || !email || !password) {
+                    return next(new AppError("TÃ¼m alanlar zorunludur", 400));
+                }
+        */
         const existingUser = await pool.query(
             "SELECT * FROM users WHERE email = $1",
-             [email]
+            [email]
         );
 
-        if(existingUser.rowCount > 0) {
+        if (existingUser.rowCount > 0) {
             return next(new AppError("Bu email zaten kullanÄ±lÄ±yor", 400));
         }
 
@@ -265,7 +265,7 @@ async function createAdmin(req , res, next){
         success(res, { message: "Admin oluÅŸturuldu" }, 201);
 
 
-    } catch (err){
+    } catch (err) {
         next(err);
     }
 
