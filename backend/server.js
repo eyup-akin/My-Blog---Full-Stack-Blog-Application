@@ -21,6 +21,11 @@ const requestLogger = require("./middleware/requestLogger");
 const cookieParser = require("cookie-parser");
 
 
+app.use((req, res, next) => {
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  next();
+});
+
 /* ------------------- SECURITY MIDDLEWARE ------------------- */
 
 // 1. Set secure HTTP headers

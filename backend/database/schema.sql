@@ -1,4 +1,4 @@
--- USERS TABLE 
+-- USERS TABLE
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -8,7 +8,7 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- POST TABLE
+-- POSTS TABLE
 CREATE TABLE posts (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -16,18 +16,35 @@ CREATE TABLE posts (
     author_id INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_post_author
-    FOREIGN KEY (author_id)
-    REFERENCES users(id)
-    ON DELETE CASCADE
+        FOREIGN KEY (author_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
 );
 
 -- COMMENTS TABLE
-CREATE TABLE refresh_tokens(
+CREATE TABLE comments (
     id SERIAL PRIMARY KEY,
-    user.id INTEGER NOT NULL,
+    post_id INTEGER NOT NULL,
+    author_id INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_comment_post
+        FOREIGN KEY (post_id)
+        REFERENCES posts(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_comment_author
+        FOREIGN KEY (author_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+-- REFRESH TOKENS TABLE
+CREATE TABLE refresh_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
     token TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_refresh_user
+    CONSTRAINT fk_refresh_user_id
         FOREIGN KEY (user_id)
         REFERENCES users(id)
         ON DELETE CASCADE
