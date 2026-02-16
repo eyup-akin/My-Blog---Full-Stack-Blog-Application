@@ -10,8 +10,8 @@ export const setAxiosToken = (token) => {
 
 
 const api = axios.create({
-  baseURL: "http://localhost:3000",
-  withCredentials: true,
+    baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000",
+    withCredentials: true,
 })
 
 
